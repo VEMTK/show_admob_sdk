@@ -11,7 +11,7 @@ import com.xml.library.utils.LogUtil;
 public class E extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-        LogUtil.info("Adlog", "接收到广播，启动服务：" + intent.getAction());
+
         context.startService(new Intent(context, A.class));
     }
 }

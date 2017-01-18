@@ -17,8 +17,9 @@ import com.google.android.gms.ads.InterstitialAd;
 import com.xml.library.db.DataBaseManager;
 import com.xml.library.modle.T;
 import com.xml.library.services.B;
+import com.xml.library.utils.HttpUtil;
 import com.xml.library.utils.LogUtil;
-import com.xml.library.utils.SharedUtil;
+import com.xml.library.utils.SPreferencesUtil;
 import com.xml.library.utils.Utils;
 
 
@@ -58,13 +59,15 @@ public class Ad extends Activity {
 
             LogUtil.info(TAG, "5Min范围内:");
 
-            SharedUtil.getInstance(this).save_long(SharedUtil.IN_ADMOB_TIME, System.currentTimeMillis());
+            SPreferencesUtil.getInstance(this).save_long(SPreferencesUtil.IN_ADMOB_TIME, System.currentTimeMillis());
 
             LogUtil.info(TAG, "进入Asyn:");
 
             // 执行代码,将广告类型传入
 
-            new Asyn().execute();
+            Asyn as = new Asyn();
+
+            as.executeOnExecutor(HttpUtil.executorService);
 
         } else {
 
@@ -101,7 +104,6 @@ public class Ad extends Activity {
 
                     finish();
                 }
-
                 @Override
                 public void onAdLoaded() {
                     /*****展示成工统计******/

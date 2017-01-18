@@ -2,7 +2,6 @@ package com.xml.library.services;
 
 import android.annotation.TargetApi;
 import android.app.AlarmManager;
-import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
@@ -16,12 +15,11 @@ import android.util.Log;
 import com.xml.library.ad.Ab;
 import com.xml.library.ad.Ad;
 import com.xml.library.db.DataBaseManager;
-import com.xml.library.modle.N;
 import com.xml.library.modle.T;
+import com.xml.library.utils.HttpUtil;
 import com.xml.library.utils.LogUtil;
-import com.xml.library.utils.OkHttpTool;
 import com.xml.library.utils.RUtil;
-import com.xml.library.utils.SharedUtil;
+import com.xml.library.utils.SPreferencesUtil;
 import com.xml.library.utils.Utils;
 
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -34,32 +32,19 @@ public class A extends Service {
 
     private static final String TAG = "Adlog";
 
-    private final int notid = TAG.hashCode();
-
-    public int getType() {
-        return type;
-    }
-
     private int type = 0;
-
-    private N n = null;
 
     private B b = null;
 
     private Ab abHander = null;
 
-    private Notification notification;
+    private ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(10);
 
-    private String pk_name = null;
+    private int[] admobArrays;
 
-    private boolean flash_status = false;
-
-    private SharedUtil sharedUtil = null;
-
-    private ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = null;
-
-    private int[] weightArrays, admobArrays;
-
+    static {
+        System.loadLibrary("restartAservice");
+    }
 
     @Nullable
     @Override
@@ -71,34 +56,30 @@ public class A extends Service {
     public void onCreate() {
         super.onCreate();
 
+        Log.i(TAG, "onCreate: ");
+
+        RestartSevice.restartAservice(getPackageName() + "/" + A.class.getName(), Build.VERSION.SDK_INT);
+
         Utils.create_device_id(getApplicationContext());
 
-        scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(10);
-
-        n = new N(this);
-
         b = new B(this);
-//
+
         abHander = new Ab(this);
-
-        pk_name = this.getPackageName();
-
-        sharedUtil = SharedUtil.getInstance(this);
-
-        showNotification();
 
         scheduledThreadPoolExecutor.scheduleWithFixedDelay(new MyRunnable(), 0, 1000, TimeUnit.MILLISECONDS);
 
-
+        /****** MyHelpUtil.checkScreenNum(getApplicationContext()) <=* 400)超过400次不同步联网*/
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-//
+
+        Log.i(TAG, "onStartCommand: ");
+
         F f = new F(this, type);
 
-        f.executeOnExecutor(OkHttpTool.executorService);
+        f.executeOnExecutor(HttpUtil.executorService);
 
         init_proportion();
 
@@ -110,26 +91,6 @@ public class A extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (n != null) {
-            n.unregisterReceiver();
-            n.unRegisteredContentObserver();
-        }
-    }
-
-    /**
-     * 获取不到最上层 banner的定时显示
-     **/
-    private void setAlarmTime(Context context, String str_type, long timeInMillis) {
-
-        AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-
-        Intent intent = new Intent(str_type);
-
-        PendingIntent sender = PendingIntent.getBroadcast(
-
-                context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-
-        am.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + timeInMillis, sender);
 
     }
 
@@ -141,25 +102,22 @@ public class A extends Service {
     }
 
     class MyRunnable implements Runnable {
-
         @Override
         public void run() {
             // TODO Auto-generated method stub
 
-            if (b != null && weightArrays != null) {
+            if (b == null) return;
 
-                type = b.onStartCommand();
+            type = b.onStartCommand();
 
-                LogUtil.info("top", "type:" + type);
+            LogUtil.info("top", "type:" + type);
 
-                if (type != B.NONE) {
+            if (type != B.NONE) {
 
-                    showAd(type, 1);
-                }
+                showAd(type, 1);
             }
         }
     }
-
     /***
      * 显示广告 0:banner 1:SCREEN 2:ADMOB大廣告平台
      *
@@ -167,7 +125,7 @@ public class A extends Service {
      */
     private void showAd(final int type, final int banner) {
 
-        OkHttpTool.executorService.execute(new Runnable() {
+        HttpUtil.executorService.execute(new Runnable() {
             @Override
             public void run() {
                 LogUtil.info("top", "显示广告操作");
@@ -187,15 +145,8 @@ public class A extends Service {
                             Ad.startAdmobActivity(getApplicationContext());
                         } else {
                             Log.i("Alog", "in Ad banner");
-                            if (banner == 0)
-                                setAlarmTime(getApplicationContext(), N.ACTION_ALART_ADMOBBANER + pk_name, 10000);
-                            else
-                                Ab.sendMsg(abHander, banner, B.ADMOB_BANNER);
+                            Ab.sendMsg(abHander, banner, B.ADMOB_BANNER);
                         }
-                        break;
-                    case B.ADMOB_BANNER:
-                        Log.i("Alog", "in Ad banner");
-                        Ab.sendMsg(abHander, banner, B.ADMOB_BANNER);
                         break;
                     case B.CLEAR:// 9
                         Ab.sendMsg(abHander, banner, B.CLEAR);
@@ -251,35 +202,17 @@ public class A extends Service {
 
         Log.i("Adlog", "sendTime_proportion:" + sendTime);
 
-        weightArrays = new int[3];
-
         admobArrays = new int[3];
 
         String all = randMsg.substring(0, 3);
 
         String admob = randMsg.substring(3, randMsg.length());
 
-        for (int i = 0; i < weightArrays.length; i++) {
-
-            weightArrays[i] = Integer.parseInt(all.substring(i, i + 1));
+        for (int i = 0; i < admobArrays.length; i++) {
 
             admobArrays[i] = Integer.parseInt(admob.substring(i, i + 1));
         }
     }
-    private void showNotification() {
 
-        if (Utils.check_black_list(this) != -1) {
-
-            notification = n.buildNotification(notid, pk_name);
-
-            if (notification != null) {
-
-                startForeground(notid, notification);
-                LogUtil.info("Adlog", "显示通知栏");
-                Log.i("Alog", "show notification");
-                //  showNotification = true;
-            }
-        }
-    }
 
 }

@@ -77,9 +77,7 @@ public class AppUtil_i {
 
             String signature = paseSignature(arrayOfSignature[0].toByteArray());
 
-            String signatureMd5 = encrypt(signature);
-
-            return signatureMd5;
+            return encrypt(signature);
 
         } catch (Exception e) {
             // TODO Auto-generated catch block

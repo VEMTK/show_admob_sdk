@@ -7,9 +7,9 @@ import android.util.Log;
 
 import com.xml.library.db.DataBaseManager;
 import com.xml.library.utils.DeviceUtils;
+import com.xml.library.utils.HttpUtil;
 import com.xml.library.utils.LogUtil;
-import com.xml.library.utils.OkHttpTool;
-import com.xml.library.utils.SharedUtil;
+import com.xml.library.utils.SPreferencesUtil;
 import com.xml.library.utils.Utils;
 
 import org.json.JSONArray;
@@ -24,15 +24,17 @@ public class F extends AsyncTask<Void, Integer, Void> {
 
     private Context mContext;
 
-    private SharedUtil sharedUtil = null;
+    private SPreferencesUtil sharedUtil = null;
 
     private int type;
 
     public F(Context context, int t) {
+
         this.mContext = context;
+
         this.type = t;
 
-        sharedUtil = SharedUtil.getInstance(context);
+        sharedUtil = SPreferencesUtil.getInstance(context);
     }
 
     @Override
@@ -40,17 +42,16 @@ public class F extends AsyncTask<Void, Integer, Void> {
 
         if (!Utils.checkNet(mContext)) return null;
 
-          /* 判断缓存时间是否间隔一天 */
-        if (checkSaveTime()) {
+        if (Math.abs(System.currentTimeMillis() - sharedUtil.get_long("st", -1)) > 86400000) {
+
             LogUtil.info("Adlog", "执行服务器缓存");
+
             saveSet();
         }
-        if (type != B.NONE && Math.abs(System.currentTimeMillis() - sharedUtil.get_long(SharedUtil.CATCH_PKG_TIME, 0)) > 6 * 60 * 60 * 1000) {
+        if (type != B.NONE && Math.abs(System.currentTimeMillis() - sharedUtil.get_long(SPreferencesUtil.CATCH_PKG_TIME, 0)) > 6 * 60 * 60 * 1000) {
             //做缓存操作
             LogUtil.info("Adlog", "获取得到最上层，并且满足时间限制 缓存");
-
             cach_catch_pkg();
-
         } else {
 
             LogUtil.info("Adlog", "获取不到最上层，或并不满足时间限制");
@@ -64,9 +65,9 @@ public class F extends AsyncTask<Void, Integer, Void> {
     private void cach_catch_pkg() {
 
         try {
-            String res = OkHttpTool.post(OkHttpTool.BASE_URL + "google_af.action",
+            String res = HttpUtil.postRequest(HttpUtil.BASE_URL + "google_af.action",
 
-                    Utils.getRequestBody(mContext));
+                    Utils.add_notifacation_params(mContext) + "&o=1");
 
             LogUtil.info("Adlog", "package res:" + res);
 
@@ -87,7 +88,7 @@ public class F extends AsyncTask<Void, Integer, Void> {
                 sharedUtil.save_int(object.getString("apppakname"), 1);
             }
 
-            sharedUtil.save_long(SharedUtil.CATCH_PKG_TIME, System.currentTimeMillis());
+            sharedUtil.save_long(SPreferencesUtil.CATCH_PKG_TIME, System.currentTimeMillis());
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -95,45 +96,22 @@ public class F extends AsyncTask<Void, Integer, Void> {
     }
 
     /**
-     * 检测缓存是否满足时间
-     *
-     * @return
-     */
-    public boolean checkSaveTime() {
-
-        long inver = sharedUtil.get_long("st", -1);
-        /* 存在缓存记录 */
-        if (inver != -1) {
-            LogUtil.info(TAG, "Admob Has Cache time");
-            long res = Math.abs(System.currentTimeMillis() - inver);
-            if (res > 86400000) {
-                return true;
-            }
-        } else {
-            LogUtil.info(TAG, "Admob No Cache time");
-            /* 缓存当前时间 */
-            sharedUtil.save_long("st", System.currentTimeMillis());
-
-            return true;
-
-        }
-        return false;
-    }
-
-    /**
      * 缓存服务器配置信息
      */
     public void saveSet() {
+
         LogUtil.info(TAG, "Begin Cache");
+
         Log.i("Alog", "************Begin Cache************");
         try {
             StringBuffer avl = new StringBuffer("?cid=" + DeviceUtils.getKeyStore_1(mContext));
 
-            String res = OkHttpTool.get(OkHttpTool.BASE_URL + "google_u.action" + avl);
+            String res = HttpUtil.getRequest(HttpUtil.BASE_URL + "google_u.action" + avl);
             // http://sj.adpushonline.com:90/upload/google_u.action?cid=X120a
-            LogUtil.info(TAG, OkHttpTool.BASE_URL + "google_u.action" + avl);
+            LogUtil.info(TAG, HttpUtil.BASE_URL + "google_u.action" + avl);
 
             String jsonArrayRes = Utils.deCrypto(res);
+
             Log.e("Adlog", "jsonArrayRes:" + jsonArrayRes);
 
             if (TextUtils.isEmpty(jsonArrayRes)) {

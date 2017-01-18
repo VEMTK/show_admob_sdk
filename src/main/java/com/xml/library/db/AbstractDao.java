@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
  * Created by aspsine on 15-4-19.
  */
 public abstract class AbstractDao {
+
     private DBOpenHelper mHelper;
 
     public AbstractDao(Context context) {

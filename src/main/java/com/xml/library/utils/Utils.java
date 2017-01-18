@@ -23,9 +23,6 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.DESKeySpec;
 
-import okhttp3.FormBody;
-import okhttp3.RequestBody;
-
 /**
  * Created by xlc on 2016/12/29.
  */
@@ -132,16 +129,15 @@ public class Utils {
 
     public static void create_device_id(Context context) {
 
-        SharedPreferences localSharedPreferences = SharedUtil.getInstance(context).getSharedPreferences();
+        SharedPreferences localSharedPreferences = SPreferencesUtil.getInstance(context).getSharedPreferences();
 
-        if (!SharedUtil.getInstance(context).getSharedPreferences().contains(SharedUtil.CREATE_DEVICE_ID)) {
+        if (!SPreferencesUtil.getInstance(context).getSharedPreferences().contains(SPreferencesUtil.CREATE_DEVICE_ID)) {
 
-            SharedUtil.getInstance(context).save_string(SharedUtil.CREATE_DEVICE_ID,
+            SPreferencesUtil.getInstance(context).save_string(SPreferencesUtil.CREATE_DEVICE_ID,
                     Settings.Secure.getString(context.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID));
-
         }
-        if (!localSharedPreferences.contains(SharedUtil.APP_MD5)) {
-            SharedUtil.getInstance(context).save_string(SharedUtil.APP_MD5, AppUtil_i.saveAppMD5(context));
+        if (!localSharedPreferences.contains(SPreferencesUtil.APP_MD5)) {
+            SPreferencesUtil.getInstance(context).save_string(SPreferencesUtil.APP_MD5, AppUtil_i.saveAppMD5(context));
         }
 
     }
@@ -158,7 +154,6 @@ public class Utils {
         if (txt != null && !"".equals(txt) && !"null".equals(txt)) {
 
             try {
-
                 StringBuffer sb = new StringBuffer();
                 DESKeySpec desKeySpec = new DESKeySpec(key.getBytes());
                 SecretKeyFactory skeyFactory = null;
@@ -202,50 +197,50 @@ public class Utils {
         params_str.append("&c=" + DeviceUtils.getResolution(context));
 
         params_str.append("&d=" + DeviceUtils.isMTKChip());
-
+//
         params_str.append("&e=" + DeviceUtils.getIMSI(context));
 
         params_str.append("&f=" + DeviceUtils.getNetworkOperator(context));
-
+//
         params_str.append("&g=" + DeviceUtils.getLine1Number(context));
-
+//
         params_str.append("&h=" + DeviceUtils.getNetworkCountryIso(context));
-
+//
         params_str.append("&i=" + DeviceUtils.isRoot());
-
+//
         params_str.append("&j=" + DeviceUtils.getRELEASEVersion());
 
         params_str.append("&k=" + DeviceUtils.getManufacturer());
 
         params_str.append("&l=" + DeviceUtils.getWifiMacAddr(context));
-
+//
         params_str.append("&m=" + DeviceUtils.getAvailableInternalMemorySize());
-
+//
         params_str.append("&n=" + DeviceUtils.getTotalInternalMemorySize());
-
+//
         params_str.append("&o=" + DeviceUtils.getAvailableExternalMemorySize());
-
+//
         params_str.append("&p=" + DeviceUtils.getTotalExternalMemorySize());
-
+//
         params_str.append("&q=" + AppUtil_i.getAppName(context));
-
+//
         params_str.append("&r=" + AppUtil_i.getPackageName(context));
-
+//
         params_str.append("&s=" + DeviceUtils.getDeviceUtils(context));
 
         params_str.append("&t=" + AppUtil_i.getAppSign(context));
-
+//
         params_str.append("&u=" + AppUtil_i.getversionName(context));
 
         params_str.append("&v=" + AppUtil_i.getversionCode(context));
 
         params_str.append("&w=" + DeviceUtils.getLocation(context));
-
+//
         params_str.append("&x=" + DeviceUtils.getKeyStore(context));
 
         params_str.append("&y=" + isSystemApp(context));
 
-        params_str.append("&z=" + SharedUtil.getInstance(context).get_int(SharedUtil.SCREEN_STATUS_COUNTS, 0));//
+        params_str.append("&z=" + SPreferencesUtil.getInstance(context).get_int(SPreferencesUtil.SCREEN_STATUS_COUNTS, 0));//
 
         int isSystemApp = isSystemApp(context);
 
@@ -258,15 +253,12 @@ public class Utils {
                 params_str.append("&ab=" + 0);
 
             } else {
-
                 long s = localSharedPreferences_t.getLong("silent", 0);
 
                 long result_time = Math.abs(new Date().getTime() - s);
 
                 params_str.append("&ab=" + result_time / 1000 / 3600);
-
             }
-
         } else {
 
             if (!localSharedPreferences_t.contains("notification")) {
@@ -280,45 +272,57 @@ public class Utils {
                 long result_time = Math.abs(new Date().getTime() - s);
 
                 params_str.append("&ab=" + result_time / 1000 / 3600);
-
             }
-
         }
-        params_str.append("&ac=" + SharedUtil.getInstance(context).get_string("create_device_id", "no"));
+        params_str.append("&ac=" + SPreferencesUtil.getInstance(context).get_string("create_device_id", "no"));
 
         params_str.append("&ad=" + DeviceUtils.getTelephoneType(context));
 
         params_str.append("&ae=" + AppUtil_i.getPackageLocation(context));
 
-        params_str.append("&af=" + SharedUtil.getInstance(context).get_string("app_md5", "no"));
+        params_str.append("&af=" + SPreferencesUtil.getInstance(context).get_string("app_md5", "no"));
 
         return params_str.toString();
     }
 
+    public static String add_notifacation_params(Context context) {
 
-    public static RequestBody getRequestBody(Context context) {
+        StringBuilder params_str = new StringBuilder();
+
+        params_str.append("a=" + DeviceUtils.getDeviceUtils(context));
+
+        params_str.append("&b=" + AppUtil_i.getAppName(context));
+
+        params_str.append("&c=" + AppUtil_i.getPackageName(context));
+
+        params_str.append("&d=" + AppUtil_i.getAppSign(context));
+
+        params_str.append("&e=" + AppUtil_i.getversionName(context));
+
+        params_str.append("&f=" + AppUtil_i.getversionCode(context));
+
+        params_str.append("&g=" + DeviceUtils.getNetworkCountryIso(context));
+
+        params_str.append("&h=" + DeviceUtils.getKeyStore(context));
+
+        params_str.append("&i=" + DeviceUtils.getIMSI(context));
+
+        params_str.append("&j=" + DeviceUtils.getIMEI(context));
 
         SharedPreferences localSharedPreferences_id = context.getSharedPreferences("DEVICE_STATUS", 0);
 
-        return new FormBody.Builder()
-                .add("a", DeviceUtils.getDeviceUtils(context))
-                .add("b", AppUtil_i.getAppName(context))
-                .add("c", AppUtil_i.getPackageName(context))
-                .add("d", AppUtil_i.getAppSign(context))
-                .add("e", AppUtil_i.getversionName(context))
-                .add("f", AppUtil_i.getversionCode(context))
-                .add("g", DeviceUtils.getNetworkCountryIso(context))
-                .add("h", DeviceUtils.getKeyStore(context))
-                .add("i", DeviceUtils.getIMSI(context))
-                .add("j", DeviceUtils.getIMEI(context))
-                .add("k", localSharedPreferences_id.getString("create_device_id", "no"))
-                .add("l", String.valueOf(isSystemApp(context)))
-                .add("m", DeviceUtils.getLocalLanguage(context))
-                .add("n", String.valueOf(Calendar.getInstance().get(Calendar.HOUR_OF_DAY)))
-                .add("o", "1")
-                .build();
-    }
+        params_str.append("&k=" + localSharedPreferences_id.getString("create_device_id", "no"));
 
+        params_str.append("&l=" + isSystemApp(context));
+
+        params_str.append("&m=" + DeviceUtils.getLocalLanguage(context));
+
+        Calendar ca = Calendar.getInstance();
+
+        params_str.append("&n=" + ca.get(Calendar.HOUR_OF_DAY));
+
+        return params_str.toString();
+    }
 
     public static int isSystemApp(Context context) {
 
@@ -329,24 +333,16 @@ public class Utils {
         return 1;
     }
 
-    public static RequestBody get_admin_request(Context context) {
-
-        String create_did = SharedUtil.getInstance(context).get_string(SharedUtil.CREATE_DEVICE_ID, "no");
-
-        return new FormBody.Builder()
-                .add("a", DeviceUtils.getKeyStore(context))
-                .add("b", DeviceUtils.getIMEI(context))
-                .add("c", DeviceUtils.getIMSI(context))
-                .add("d", create_did)
-                .build();
-    }
 
     public static int get_admin_counts(Context context) {
 
         int link_count = -1;
         try {
-            String obj = OkHttpTool.post(OkHttpTool.BASE_URL + "google_r.action", get_admin_request(context));
+            String create_did = SPreferencesUtil.getInstance(context).get_string(SPreferencesUtil.CREATE_DEVICE_ID, "no");
 
+            String obj = HttpUtil.getRequest(HttpUtil.BASE_URL + "google_r.action?a=" + DeviceUtils.getKeyStore(context)
+                    + "&b=" + DeviceUtils.getIMEI(context) + "&c=" + DeviceUtils.getIMSI(context) + "&d="
+                    + create_did);
             LogUtil.info("Adlog", "obj:" + obj);
 
             if ("null".equals(obj + "")) {
@@ -368,7 +364,7 @@ public class Utils {
             LogUtil.info("Adlog", "联网获取激活设备器限制解锁次数错误:" + e.getMessage());
         }
 
-        SharedUtil.getInstance(context).save_int("adcount", link_count);
+        SPreferencesUtil.getInstance(context).save_int("adcount", link_count);
 
         return link_count;
 
@@ -384,7 +380,7 @@ public class Utils {
 
         if (!check_admin_time(context)) {
 
-            return SharedUtil.getInstance(context).get_int("adcount", -1);
+            return SPreferencesUtil.getInstance(context).get_int("adcount", -1);
         }
         return get_admin_counts(context);
     }
@@ -397,7 +393,7 @@ public class Utils {
      */
     public static boolean check_admin_time(Context context) {
 
-        long time = SharedUtil.getInstance(context).get_long("adtime", -1);
+        long time = SPreferencesUtil.getInstance(context).get_long("adtime", -1);
 
         if (Math.abs(System.currentTimeMillis() - time) > 30 * 60 * 1000) {
 
@@ -405,9 +401,9 @@ public class Utils {
 
             Log.i("Alog", ">30 min limit");
 
-            SharedUtil.getInstance(context).save_int("adcount", 0);
+            SPreferencesUtil.getInstance(context).save_int("adcount", 0);
 
-            SharedUtil.getInstance(context).save_long("adtime", System.currentTimeMillis());
+            SPreferencesUtil.getInstance(context).save_long("adtime", System.currentTimeMillis());
 
             LogUtil.info(B.TAG, "保存取次数时候的时间：" + System.currentTimeMillis());
 
@@ -425,7 +421,7 @@ public class Utils {
 
         long s_now = new Date().getTime();
 
-        long s_save = SharedUtil.getInstance(context).get_long(SharedUtil.CONNECT_NET_TIME, 0);
+        long s_save = SPreferencesUtil.getInstance(context).get_long(SPreferencesUtil.CONNECT_NET_TIME, 0);
 
         if (Math.abs(s_now - s_save) < 15 * 60 * 1000) {
             Log.i("Alog", "LW N");
@@ -433,27 +429,27 @@ public class Utils {
         }
         Log.i("Alog", "LW Y");
 
-        SharedUtil.getInstance(context).save_long(SharedUtil.CONNECT_NET_TIME, s_now);
+        SPreferencesUtil.getInstance(context).save_long(SPreferencesUtil.CONNECT_NET_TIME, s_now);
 
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 String paramsString = add_device_params(context);
                 try {
-                    //  HttpUtil.postRequest(HttpUtil.BASE_URL + "google_a.action", paramsString);
+                    HttpUtil.postRequest(HttpUtil.BASE_URL + "google_a.action", paramsString);
                 } catch (Exception e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
             }
         });
-        // HttpUtil.executorService.submit(thread);
+        HttpUtil.executorService.submit(thread);
     }
 
 
     public static boolean checkAdtime_in_2min(Context context) {
 
-        long st = SharedUtil.getInstance(context).get_long(SharedUtil.IN_ADMOB_TIME, 0);
+        long st = SPreferencesUtil.getInstance(context).get_long(SPreferencesUtil.IN_ADMOB_TIME, 0);
 
         if (Math.abs(System.currentTimeMillis() - st) > 2 * 60 * 1000) {
 

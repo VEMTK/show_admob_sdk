@@ -1,5 +1,7 @@
 package com.xml.library.utils;
 
+import android.util.Log;
+
 import java.util.Random;
 
 /**
@@ -7,6 +9,54 @@ import java.util.Random;
  */
 public class RUtil {
 
+    public static int get_proportion(double[] weightArrays) {
+
+        int weightValue = getWeightRandom(weightArrays);
+
+        if (weightValue >= 0) {
+
+            return weightValue;
+        }
+        return -1;
+    }
+
+    private static double weightArraySum(double[] weightArrays) {
+        double weightSum = 0;
+        if (weightArrays != null) {
+            for (double weightValue : weightArrays) {
+                weightSum += weightValue;
+            }
+            return weightSum;
+        }
+        return weightSum;
+    }
+
+    private static int getWeightRandom(double[] weightArrays) {
+
+        double weightSum = weightArraySum(weightArrays);
+
+        double r1 = weightArrays[0] / weightSum;
+
+        double r2 = weightArrays[1] / weightSum;
+
+        double r3 = weightArrays[2] / weightSum;
+
+        double radnum = Math.random();
+
+        if (radnum >= 0 && radnum <= r1) {
+
+            return 0;
+
+        } else if (radnum > r1 && radnum <= (r2 + r1)) {
+
+            return 1;
+
+        } else if (radnum > (r1 + r2) && radnum <= (r1 + r2 + r3)) {
+
+            return 2;
+        }
+        return -1;
+    }
 
     public static int get_proportion(int[] weightArrays) {
 
@@ -39,5 +89,4 @@ public class RUtil {
         }
         return t;
     }
-
 }

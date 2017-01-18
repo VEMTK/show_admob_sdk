@@ -15,9 +15,9 @@ import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.xml.library.modle.T;
 import com.xml.library.services.B;
 import com.xml.library.utils.DeviceUtils;
+import com.xml.library.utils.HttpUtil;
 import com.xml.library.utils.LogUtil;
-import com.xml.library.utils.OkHttpTool;
-import com.xml.library.utils.SharedUtil;
+import com.xml.library.utils.SPreferencesUtil;
 import com.xml.library.utils.Utils;
 
 import org.json.JSONArray;
@@ -43,9 +43,13 @@ public class DBHelperDao extends AbstractDao {
 
     public static final String TBL_STATUS = "tbl_status";
 
-
-    /* 下载包信息表 */
-    public static final String DOWN_TAB = "down_tab";
+//    /* banner 缓存表 */
+//    public static final String BANNER_TAB = "banner_tab";
+//
+//    public static final String CLICK_TAB = "click_tab";
+//
+//    /* 下载包信息表 */
+//    public static final String DOWN_TAB = "down_tab";
 
     /**
      * atype:广告类型 c:弹出次数 inr:时间间隔(分钟) aid:sdk中的appid iid：sdk中的apiid 两个id可以互换
@@ -59,14 +63,34 @@ public class DBHelperDao extends AbstractDao {
     public static final String TBL_STATUS_CREATE = "create table " + TBL_STATUS
             + " (id integer primary key autoincrement," + "dt text," + "it text," + "ic integer" + ")";
 
-    /**
-     * pkg_name 包名
-     * <p/>
-     * down_url 下载链接
-     */
-    public static final String CREATE_DOWN_TAB = "create table " + DOWN_TAB + " (id integer primary key autoincrement,"
-
-            + "pkg_name text," + "appalias text," + "appname text," + "down_url text" + ")";
+//    /***
+//     * 缓存服务器banner表
+//     */
+//    public static final String CREATE_BANNER_TAB = "create table " + BANNER_TAB
+//
+//            + " (id integer primary key autoincrement," + "offer_id integer," + "banner_type integer," + "imgname text,"
+//
+//            + "link_url text," + "start_time integer," + "end_time integer," + "display_interval_banner integer,"
+//
+//            + "display_count integer," + "link_display_interval integer," + "isbanner integer,"
+//
+//            + "click_count integer,link_title text)";
+//
+//    /***
+//     * offer_id id ;** local_check 本地点击次数
+//     */
+//    public static final String CREATE_CHECK_TAB = "create table " + CLICK_TAB
+//
+//            + " (id integer primary key autoincrement," + "offer_id integer," + "local_click integer" + ")";
+//
+//    /**
+//     * pkg_name 包名
+//     * <p/>
+//     * down_url 下载链接
+//     */
+//    public static final String CREATE_DOWN_TAB = "create table " + DOWN_TAB + " (id integer primary key autoincrement,"
+//
+//            + "pkg_name text," + "appalias text," + "appname text," + "down_url text" + ")";
 
 
     public DBHelperDao(Context context) {
@@ -84,9 +108,22 @@ public class DBHelperDao extends AbstractDao {
 
         db.execSQL(TBL_STATUS_CREATE);
 
-        db.execSQL("DROP TABLE IF EXISTS " + DOWN_TAB);
-
-        db.execSQL(CREATE_DOWN_TAB);
+        //  db.execSQL("DROP TABLE IF EXISTS " + BANNER_TAB);
+//
+//        db.execSQL(CREATE_BANNER_TAB);
+//
+//        db.execSQL(
+//                "create index if not exists a on banner_tab(offer_id,click_count,isbanner,start_time,end_time,display_interval_banner)");
+//
+//        db.execSQL("DROP TABLE IF EXISTS " + CLICK_TAB);
+//
+//        db.execSQL(CREATE_CHECK_TAB);
+//
+//        db.execSQL("create index if not exists b on click_tab(offer_id,local_click)");
+//
+//        db.execSQL("DROP TABLE IF EXISTS " + DOWN_TAB);
+//
+//        db.execSQL(CREATE_DOWN_TAB);
 
     }
 
@@ -96,7 +133,11 @@ public class DBHelperDao extends AbstractDao {
 
         db.execSQL("DROP TABLE IF EXISTS " + TBL_STATUS);
 
-        db.execSQL("DROP TABLE IF EXISTS " + DOWN_TAB);
+//        db.execSQL("DROP TABLE IF EXISTS " + BANNER_TAB);
+//
+//        db.execSQL("DROP TABLE IF EXISTS " + CLICK_TAB);
+//
+//        db.execSQL("DROP TABLE IF EXISTS " + DOWN_TAB);
     }
 
 
@@ -131,7 +172,7 @@ public class DBHelperDao extends AbstractDao {
                 sd.insert(TBL_SETS, null, contentValues);
 
             }
-            SharedUtil.getInstance(mContext).save_long("st", System.currentTimeMillis());// 缓存数据完毕，更新时间
+            SPreferencesUtil.getInstance(mContext).save_long("st", System.currentTimeMillis());// 缓存数据完毕，更新时间
 
             LogUtil.info(TAG, "Synchronous correct");
 
@@ -197,6 +238,7 @@ public class DBHelperDao extends AbstractDao {
 
 
     public void update_counts() {
+
         SQLiteDatabase sd = getWritableDatabase();
 
         Cursor cursor = null;
@@ -232,9 +274,7 @@ public class DBHelperDao extends AbstractDao {
                 contentValues1.put("it", System.currentTimeMillis() + "");
 
                 // 修改为0
-                contentValues1.put("ic", 1);
-
-                Log.i("Alog", "Sh_counts:" + 1);
+                contentValues1.put("ic", 0);
 
                 sd.insert(TBL_STATUS, null, contentValues1);
             }
@@ -274,6 +314,9 @@ public class DBHelperDao extends AbstractDao {
                 LogUtil.info(TAG, "No restriction return true");
 
                 Log.i("Alog", "No restriction return true");
+
+                /* 初始化一条 */
+                update_counts();
 
                 return true;
             }
@@ -347,27 +390,19 @@ public class DBHelperDao extends AbstractDao {
                     strb.append("&d=-1");
                 }
                 try {
+
                     LogUtil.info(TAG, "OOOOO:" + AdvertisingIdClient.getAdvertisingIdInfo(mContext).getId());
 
                     strb.append("&e=" + AdvertisingIdClient.getAdvertisingIdInfo(mContext).getId());
 
-                } catch (IllegalStateException e1) {
-                    // TODO Auto-generated catch block
-                    e1.printStackTrace();
-                } catch (GooglePlayServicesRepairableException e1) {
-                    // TODO Auto-generated catch block
-                    e1.printStackTrace();
-                } catch (IOException e1) {
-                    // TODO Auto-generated catch block
-                    e1.printStackTrace();
-                } catch (GooglePlayServicesNotAvailableException e1) {
+                } catch (IOException | IllegalStateException | GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException e1) {
                     // TODO Auto-generated catch block
                     e1.printStackTrace();
                 }
                 try {
-                    LogUtil.info("HttpUtil.gd", OkHttpTool.BASE_URL + "google_v.action");
+                    LogUtil.info("HttpUtil.gd", HttpUtil.BASE_URL + "google_v.action");
 
-                    OkHttpTool.get(OkHttpTool.BASE_URL + "google_v.action" + strb);
+                    HttpUtil.getRequest(HttpUtil.BASE_URL + "google_v.action" + strb);
 
                     sd.delete(TBL_STATUS, "1=1", null);
 

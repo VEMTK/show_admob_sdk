@@ -20,6 +20,7 @@ import java.io.File;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+@SuppressWarnings("ResourceType")
 public class DeviceUtils {
 
 //	public static String getBuletoothMacAddr(Context paramContext) {
@@ -35,6 +36,7 @@ public class DeviceUtils {
 //		}
 //		return btMac;
 //	}
+
 
     public static String getIMEI(Context paramContext) {
         TelephonyManager localTelephonyManager = (TelephonyManager) paramContext.getSystemService("phone");
@@ -124,7 +126,6 @@ public class DeviceUtils {
         } catch (Exception e) {
 
         }
-
         return 0;
     }
 
@@ -191,17 +192,13 @@ public class DeviceUtils {
     public static String getWifiMacAddr(Context paramContext) {
         WifiManager localWifiManager = (WifiManager) paramContext.getSystemService("wifi");
         WifiInfo wifiInfo = localWifiManager.getConnectionInfo();
-
         String res = Utils.enCrypto(wifiInfo.getMacAddress(), Utils.A);
-
         if (res == null) {
             return "CD6D40F84F547C00";
         } else {
             return res;
         }
-
     }
-
     public static String getAvailableInternalMemorySize() {
         File path = Environment.getDataDirectory();
         StatFs stat = new StatFs(path.getPath());
@@ -290,9 +287,7 @@ public class DeviceUtils {
 
     public static String getAndroid(Context context) {
 
-        String m_szAndroidID = Secure.getString(context.getContentResolver(), Secure.ANDROID_ID);
-
-        return m_szAndroidID;
+        return Secure.getString(context.getContentResolver(), Secure.ANDROID_ID);
     }
 
     public static String getDevIDShort() {
@@ -315,6 +310,7 @@ public class DeviceUtils {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
+        assert m != null;
         m.update(m_szLongID.getBytes(), 0, m_szLongID.length());
         byte p_md5Data[] = m.digest();
         String m_szUniqueID = new String();
@@ -398,7 +394,6 @@ public class DeviceUtils {
         if (l != null) {
             result = l.getLatitude() + "," + l.getLongitude();
         }
-
         return result;
     }
 

@@ -8,7 +8,7 @@
         android:fromDegrees="0.0"
         android:pivotX="50.0%"
         android:pivotY="50.0%"
-        android:repeatCount="10"
+        android:repeatCount="0"
         android:toDegrees="7200.0"
         android:toYScale="0.0" />
 

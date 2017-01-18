@@ -18,7 +18,6 @@ public class DataBaseManager {
         }
         return sDataBaseManager;
     }
-
     private DataBaseManager(Context context) {
         mDBHelperDao = new DBHelperDao(context);
     }
@@ -34,6 +33,7 @@ public class DataBaseManager {
     public synchronized void update_counts() {
         mDBHelperDao.update_counts();
     }
+
     public synchronized boolean check_status(long it, int ic)
     {
         return  mDBHelperDao.check_show_counts(it,ic);

@@ -18,12 +18,11 @@ import android.util.Log;
 
 import com.xml.library.utils.LogUtil;
 import com.xml.library.utils.RUtil;
-import com.xml.library.utils.SharedUtil;
+import com.xml.library.utils.SPreferencesUtil;
 
 import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
 
 /**
  * Main Class
@@ -91,13 +90,14 @@ public class B {
      */
     public int onStartCommand() {
 
-        cn = get(context);
+        cn = get_pkg(context);
 
         if (TextUtils.isEmpty(cn) || cn.equals("null")) {
 
             return NONE;
         }
-        if (SharedUtil.getInstance(context).get_int(cn, 0) > 0) {
+        if (SPreferencesUtil.getInstance(context).get_int(cn, 0) > 0) {
+
             LogUtil.info("top", "最上层为自己不能显示广告的应用：" + cn);
 
             return CLEAR;
@@ -145,28 +145,15 @@ public class B {
 
             now_top = cn;
 
-            /** 随机(Banner:Screen) */
+            Log.i("Alog", "Top: " + cn + "     in B_ad ");
 
-            LogUtil.info("Adlog", "(0:Admob interstitial ):" + 0);
+            return ADMOB;
 
-            switch (0) {
-
-                case 0:
-
-                    LogUtil.info("Adlog", "TOP:" + cn + " ADMOB ");
-
-                    Log.i("Alog", "Top: " + cn + "     in B_ad ");
-
-                    return ADMOB;
-            }
         } else {
-
             now_top = cn;
-
-            return CLEAR;
         }
-        return s_type;
 
+        return s_type;
     }
 
     private ResolveInfo is_(String params, Intent intent, int flag) {
@@ -194,13 +181,13 @@ public class B {
                 if (resolveInfo.activityInfo.packageName.equals(params)) {
 
                     return resolveInfo;
-
                 }
             }
         }
 
         return null;
     }
+
     /**
      * 是否内置应用
      *
@@ -237,7 +224,7 @@ public class B {
      * @param context
      * @return
      */
-    public String get(Context context) {
+    public String get_pkg(Context context) {
 
         if (context == null) {
 
@@ -294,7 +281,7 @@ public class B {
 
                         return null;
                     }
-                    if (state != null && state == START_TASK_TO_FRONT) {
+                    if (state == START_TASK_TO_FRONT) {
 
                         currentInfo = app;
 
