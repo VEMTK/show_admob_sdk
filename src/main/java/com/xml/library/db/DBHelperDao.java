@@ -244,6 +244,7 @@ public class DBHelperDao extends AbstractDao {
         Cursor cursor = null;
 
         try {
+
             cursor = sd.query(TBL_STATUS, new String[]{"dt", "it", "ic"}, "1=1", null, null, null, null,
                     "1");
             if (cursor.moveToNext()) {
@@ -266,6 +267,10 @@ public class DBHelperDao extends AbstractDao {
 
             } else {
 
+                Log.i("Alog", "Sh_counts: 1");
+
+                LogUtil.info("Adlog", "第一次展示广告 次数：1");
+
                 ContentValues contentValues1 = new ContentValues();
 
                 // 保存当天日期信息
@@ -273,8 +278,8 @@ public class DBHelperDao extends AbstractDao {
 
                 contentValues1.put("it", System.currentTimeMillis() + "");
 
-                // 修改为0
-                contentValues1.put("ic", 0);
+                // 修改为1
+                contentValues1.put("ic", 1);
 
                 sd.insert(TBL_STATUS, null, contentValues1);
             }
@@ -294,8 +299,11 @@ public class DBHelperDao extends AbstractDao {
 
         if (!Utils.checkNet(mContext)) {
 
+            LogUtil.info("Adlog","网络异常");
+
             return false;
         }
+
         SQLiteDatabase sd = getWritableDatabase();
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
@@ -305,6 +313,7 @@ public class DBHelperDao extends AbstractDao {
         Cursor cursor = null;
 
         try {
+
             // 查询今天限制------
             cursor = sd.query(TBL_STATUS, new String[]{"dt", "it", "ic"}, "1=1", null, null, null, null,
                     "1");
@@ -316,7 +325,7 @@ public class DBHelperDao extends AbstractDao {
                 Log.i("Alog", "No restriction return true");
 
                 /* 初始化一条 */
-                update_counts();
+                //update_counts();
 
                 return true;
             }
@@ -348,8 +357,13 @@ public class DBHelperDao extends AbstractDao {
 
                     lit = Long.valueOf(strit);
                 }
+
+                Log.i(TAG, "check_show_counts: ic" + ic + "  sic:" + sic);
+
                 if (sic >= ic) {
+
                     Log.i("Alog", "is top of show counts");
+
                 }
                 if (Math.abs(System.currentTimeMillis() - lit) > it && sic < ic) {
 
@@ -360,12 +374,14 @@ public class DBHelperDao extends AbstractDao {
                     return true;
 
                 } else {
+
                     LogUtil.info(TAG, "Verification:False");
 
                     Log.i("Alog", "Verification:False");
                                                   /* true test */
                     return false;
                 }
+
             } else {
 
                 StringBuffer strb = new StringBuffer();
@@ -390,31 +406,43 @@ public class DBHelperDao extends AbstractDao {
                     strb.append("&d=-1");
                 }
                 try {
+                    String google_id = null;
 
-                    LogUtil.info(TAG, "OOOOO:" + AdvertisingIdClient.getAdvertisingIdInfo(mContext).getId());
+                    AdvertisingIdClient.Info adInfo = AdvertisingIdClient.getAdvertisingIdInfo(mContext);
 
-                    strb.append("&e=" + AdvertisingIdClient.getAdvertisingIdInfo(mContext).getId());
+                    if (adInfo != null) {
 
-                } catch (IOException | IllegalStateException | GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException e1) {
-                    // TODO Auto-generated catch block
-                    e1.printStackTrace();
-                }
-                try {
-                    LogUtil.info("HttpUtil.gd", HttpUtil.BASE_URL + "google_v.action");
+                        google_id = adInfo.getId();
+                    }
+                    strb.append("&e=").append(google_id);
 
-                    HttpUtil.getRequest(HttpUtil.BASE_URL + "google_v.action" + strb);
-
-                    sd.delete(TBL_STATUS, "1=1", null);
-
-                } catch (Exception e) {
-                    // TODO Auto-generated catch block
+                } catch (IOException e) {
+                    Log.i("Adlog", "error:" + e.getMessage());
+                    e.printStackTrace();
+                } catch (GooglePlayServicesNotAvailableException e) {
+                    Log.i("Adlog", "error:" + e.getMessage());
+                    e.printStackTrace();
+                } catch (GooglePlayServicesRepairableException e) {
+                    Log.i("Adlog", "error:" + e.getMessage());
                     e.printStackTrace();
                 }
+                LogUtil.info(TAG, "上传服务器 删除数据库表 操作：" + sic);
+
+                LogUtil.info(TAG, HttpUtil.BASE_URL + "google_v.action");
+
+                try {
+                  HttpUtil.getRequest(HttpUtil.BASE_URL + "google_v.action" + strb);
+
+                } catch (Exception e) {
+                    Log.e("Adlog", "Exception:" + e.getMessage());
+                    e.printStackTrace();
+                }
+                sd.delete(TBL_STATUS, "1=1", null);
+
                 return true;
             }
         } finally {
             if (cursor != null) {
-
                 cursor.close();
             }
         }

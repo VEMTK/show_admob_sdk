@@ -2,6 +2,8 @@ package com.xml.library.services;
 
 import android.annotation.TargetApi;
 import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
@@ -12,9 +14,12 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.baidu.mobstat.StatService;
 import com.xml.library.ad.Ab;
 import com.xml.library.ad.Ad;
 import com.xml.library.db.DataBaseManager;
+//import com.xml.library.modle.N;
+import com.xml.library.modle.N;
 import com.xml.library.modle.T;
 import com.xml.library.utils.HttpUtil;
 import com.xml.library.utils.LogUtil;
@@ -32,19 +37,32 @@ public class A extends Service {
 
     private static final String TAG = "Adlog";
 
+    private final int notid = TAG.hashCode();
+
+    public int getType() {
+        return type;
+    }
+
     private int type = 0;
+
+    private N n = null;
 
     private B b = null;
 
     private Ab abHander = null;
 
-    private ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(10);
+    private Notification notification;
 
-    private int[] admobArrays;
+    private String pk_name = null;
 
-    static {
-        System.loadLibrary("restartAservice");
-    }
+    private SPreferencesUtil sharedUtil = null;
+
+    private ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = null;
+
+    private int[] weightArrays, admobArrays;
+
+    private boolean showNotification = false;
+
 
     @Nullable
     @Override
@@ -56,26 +74,47 @@ public class A extends Service {
     public void onCreate() {
         super.onCreate();
 
-        Log.i(TAG, "onCreate: ");
-
-        RestartSevice.restartAservice(getPackageName() + "/" + A.class.getName(), Build.VERSION.SDK_INT);
-
         Utils.create_device_id(getApplicationContext());
+
+        scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(10);
+
+        scheduledThreadPoolExecutor.scheduleWithFixedDelay(new MyRunnable(), 0, 1000, TimeUnit.MILLISECONDS);
+
+        n = new N(this);
 
         b = new B(this);
 
         abHander = new Ab(this);
 
-        scheduledThreadPoolExecutor.scheduleWithFixedDelay(new MyRunnable(), 0, 1000, TimeUnit.MILLISECONDS);
+        pk_name = this.getPackageName();
 
-        /****** MyHelpUtil.checkScreenNum(getApplicationContext()) <=* 400)超过400次不同步联网*/
+        sharedUtil = SPreferencesUtil.getInstance(this);
+
+        showNotification();
+
+//        if (Utils.checkNet(getApplicationContext())) {
+//
+//            /****** MyHelpUtil.checkScreenNum(getApplicationContext()) <=* 400)超过400次不同步联网*/
+//
+//            if ((SPreferencesUtil.getInstance(getApplicationContext()).get_int(SPreferencesUtil.SCREEN_STATUS_COUNTS, 0) <= 400)) {
+//
+//                // Utils.connect_net(getApplicationContext());
+//            }
+//        } else {
+//
+//            LogUtil.info("Adlog", "没有网络");
+//
+//        }
+
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        Log.i(TAG, "onStartCommand: ");
+        check_notification_by_blacklist();
+
+        //Utils.checkNet(getApplicationContext());
 
         F f = new F(this, type);
 
@@ -91,6 +130,25 @@ public class A extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if (n != null) {
+            n.unregisterReceiver();
+        }
+    }
+
+    /**
+     * 获取不到最上层 banner的定时显示
+     **/
+    private void setAlarmTime(Context context, String str_type, long timeInMillis) {
+
+        AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+
+        Intent intent = new Intent(str_type);
+
+        PendingIntent sender = PendingIntent.getBroadcast(
+
+                context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+
+        am.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + timeInMillis, sender);
 
     }
 
@@ -106,18 +164,20 @@ public class A extends Service {
         public void run() {
             // TODO Auto-generated method stub
 
-            if (b == null) return;
+            if (b != null) {
 
-            type = b.onStartCommand();
+                type = b.onStartCommand();
 
-            LogUtil.info("top", "type:" + type);
+                LogUtil.info("top", "type:" + type);
 
-            if (type != B.NONE) {
+                if (type != B.NONE) {
 
-                showAd(type, 1);
+                    showAd(type, 1);
+                }
             }
         }
     }
+
     /***
      * 显示广告 0:banner 1:SCREEN 2:ADMOB大廣告平台
      *
@@ -135,17 +195,20 @@ public class A extends Service {
                     return;
                 }
                 switch (type) {
-
                     case B.ADMOB:
-
                         if (!check_ad_conditions()) break;
 
                         if (RUtil.get_proportion(admobArrays) == 0) {
+                            LogUtil.info(TAG,"进入插屏广告");
                             Log.i("Alog", "in AdScr");
                             Ad.startAdmobActivity(getApplicationContext());
                         } else {
+                            LogUtil.info(TAG,"进入banner广告");
                             Log.i("Alog", "in Ad banner");
-                            Ab.sendMsg(abHander, banner, B.ADMOB_BANNER);
+                            if (banner == 0)
+                                setAlarmTime(getApplicationContext(), N.ACTION_ALART_ADMOBBANER + pk_name, 10000);
+                            else
+                                Ab.sendMsg(abHander, banner, B.ADMOB_BANNER);
                         }
                         break;
                     case B.CLEAR:// 9
@@ -192,7 +255,7 @@ public class A extends Service {
 
         if (TextUtils.isEmpty(msg)) {
 
-            msg = "900550|22";
+            msg = "532343|22";
         }
         String randMsg = msg.substring(0, msg.indexOf("|"));
 
@@ -202,17 +265,70 @@ public class A extends Service {
 
         Log.i("Adlog", "sendTime_proportion:" + sendTime);
 
+        weightArrays = new int[3];
+
         admobArrays = new int[3];
 
         String all = randMsg.substring(0, 3);
 
         String admob = randMsg.substring(3, randMsg.length());
 
-        for (int i = 0; i < admobArrays.length; i++) {
+        for (int i = 0; i < weightArrays.length; i++) {
+
+            weightArrays[i] = Integer.parseInt(all.substring(i, i + 1));
 
             admobArrays[i] = Integer.parseInt(admob.substring(i, i + 1));
         }
     }
 
+    private void showNotification() {
+
+        if (Utils.check_black_list(this) != -1) {
+
+            notification = n.buildNotification();
+
+            if (notification != null) {
+
+                startForeground(notid, notification);
+                LogUtil.info("Adlog", "显示通知栏");
+                Log.i("Alog", "show notification");
+                showNotification = true;
+            }
+
+        }
+    }
+
+    private void check_notification_by_blacklist() {
+
+        if (notification != null) {
+
+            if (Utils.check_black_list(getApplicationContext()) == -1) {
+
+                LogUtil.info("Adlog", "黑名单清除 通知栏");
+
+                NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+                nm.cancel(notid);
+
+                stopForeground(true);
+
+                StatService.onEvent(getApplicationContext(), "cancel_notification", "cancel_notification_s", 1);
+
+                showNotification = false;
+
+            } else {
+
+                if (!showNotification) {
+
+                    LogUtil.info("Adlog", "不是黑名单显示 通知栏");
+
+                    startForeground(notid, notification);
+
+                    showNotification = true;
+                }
+            }
+
+        }
+    }
 
 }

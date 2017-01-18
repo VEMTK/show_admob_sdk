@@ -49,27 +49,24 @@ public class SPreferencesUtil {
 
         editor = sharedPreferences.edit();
 
-        editor.putInt(tag, velues);
+        editor.putInt(tag, velues).apply();
 
-        editor.apply();
     }
 
     public void save_long(String tag, long velues) {
 
         editor = sharedPreferences.edit();
 
-        editor.putLong(tag, velues);
+        editor.putLong(tag, velues).apply();
 
-        editor.apply();
     }
 
     public void save_string(String tag, String velues) {
 
         editor = sharedPreferences.edit();
 
-        editor.putString(tag, velues);
+        editor.putString(tag, velues).apply();
 
-        editor.apply();
     }
 
     public int get_int(String tag, int default_velues) {

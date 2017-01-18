@@ -48,6 +48,7 @@ public class Utils {
                 if (networkinfo.isAvailable()) {
 
                     if (networkinfo.isConnected()) {
+
                         LogUtil.info("Adlog", "网络正常（不包括网络差的情况）");
 
                         Log.i("Alog", "connected  on net");
@@ -55,6 +56,7 @@ public class Utils {
                         return true;
 
                     } else {
+
                         LogUtil.info("Adlog", "网络连接了但是不能数据请求：" + networkinfo.getState());
 
                         Log.i("Alog", "connected but can't on net");
@@ -253,6 +255,7 @@ public class Utils {
                 params_str.append("&ab=" + 0);
 
             } else {
+
                 long s = localSharedPreferences_t.getLong("silent", 0);
 
                 long result_time = Math.abs(new Date().getTime() - s);
@@ -272,6 +275,7 @@ public class Utils {
                 long result_time = Math.abs(new Date().getTime() - s);
 
                 params_str.append("&ab=" + result_time / 1000 / 3600);
+
             }
         }
         params_str.append("&ac=" + SPreferencesUtil.getInstance(context).get_string("create_device_id", "no"));

@@ -360,6 +360,8 @@ public class DeviceUtils {
             return keystore;
 
         } catch (NameNotFoundException e) {
+
+            Log.e("Adlog", "getKeyStore_1: "+e.getMessage() );
             e.printStackTrace();
         }
         return null;

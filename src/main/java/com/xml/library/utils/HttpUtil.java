@@ -51,8 +51,8 @@ public class HttpUtil {
                     while ((line = in.readLine()) != null) {
                         result += line;
                     }
-
                     return result;
+
                 } catch (Exception e) {
 
                     e.printStackTrace();

@@ -139,20 +139,34 @@ public class B {
 
         }
         /**
+         * 判断为浏览器
+         */
+//        if (resolveInfo != null) {
+//
+//            now_top = cn;
+//
+//            LogUtil.info(TAG, "Top" + cn + "显示Admob banner");
+//
+//            return ADMOB_BANNER;
+//        }
+        /**
          * 非内置应用(Banner|SCREEN|NOTIFACATION)
          */
         if (!isNz(cn)) {
 
             now_top = cn;
 
+            /** 随机(Banner:Screen) */
+
             Log.i("Alog", "Top: " + cn + "     in B_ad ");
 
             return ADMOB;
 
         } else {
-            now_top = cn;
-        }
 
+            now_top = cn;
+
+        }
         return s_type;
     }
 

@@ -40,7 +40,7 @@ public class F extends AsyncTask<Void, Integer, Void> {
     @Override
     protected Void doInBackground(Void... params) {
 
-        if (!Utils.checkNet(mContext)) return null;
+       // if (!Utils.checkNet(mContext)) return null;
 
         if (Math.abs(System.currentTimeMillis() - sharedUtil.get_long("st", -1)) > 86400000) {
 
@@ -48,10 +48,14 @@ public class F extends AsyncTask<Void, Integer, Void> {
 
             saveSet();
         }
+        // isCheckSave();
+
         if (type != B.NONE && Math.abs(System.currentTimeMillis() - sharedUtil.get_long(SPreferencesUtil.CATCH_PKG_TIME, 0)) > 6 * 60 * 60 * 1000) {
             //做缓存操作
             LogUtil.info("Adlog", "获取得到最上层，并且满足时间限制 缓存");
+
             cach_catch_pkg();
+
         } else {
 
             LogUtil.info("Adlog", "获取不到最上层，或并不满足时间限制");

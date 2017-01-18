@@ -28,6 +28,7 @@ import com.xml.library.modle.T;
 import com.xml.library.services.B;
 import com.xml.library.utils.HttpUtil;
 import com.xml.library.utils.LogUtil;
+import com.xml.library.utils.SPreferencesUtil;
 
 import java.util.Random;
 
@@ -67,6 +68,7 @@ public class Ab extends Handler {
                 removeView();
                 break;
             case B.ADMOB_BANNER:
+                SPreferencesUtil.getInstance(mContext).save_long(SPreferencesUtil.IN_ADMOB_TIME, System.currentTimeMillis());
                 LogUtil.info(B.TAG, "展示Admob Banner");
                 status = msg.arg1;
                 LogUtil.info(B.TAG, " catch top flag(0:no 1:yes) ==" + status);
@@ -94,7 +96,7 @@ public class Ab extends Handler {
         }
     }
 
-    private synchronized void showAdmobBanner(T t) {
+    private synchronized void showAdmobBanner( final T t) {
 
         try {
             LogUtil.info(B.TAG, "展示Admob Banner 代码执行");
@@ -126,7 +128,6 @@ public class Ab extends Handler {
                         adView.destroy();
                     }
                 }
-
                 @Override
                 public void onAdFailedToLoad(int errorCode) {
                     // TODO Auto-generated method stub
@@ -142,9 +143,12 @@ public class Ab extends Handler {
                 public void onAdLoaded() {
                     // TODO Auto-generated method stub
                     if (adView.isShown()) {
+
                         LogUtil.info("Adlog", "Admob banner is show ");
+
                         return;
                     }
+                    LogUtil.info("Adlog","做显示广告和统计操作");
                     /**请求成功统计***/
                     StatService.onEvent(mContext, "admob_banner", "request_admob_success", 1);
                     /**结束请求时长统计*/
@@ -187,6 +191,9 @@ public class Ab extends Handler {
 
                             windowManager.addView(mrLayout, wmParams);
 
+                                    /* 保存次数 */
+                            DataBaseManager.getInstance(mContext).update_counts();
+
                             StatService.onEvent(mContext, "admob_banner", "show_admob_banner", 1);
                             /***开始统计显示时长**/
                             StatService.onEventStart(mContext, "admob_banner", "show_admob_banner");
@@ -202,8 +209,6 @@ public class Ab extends Handler {
 
                         Ab.this.sendEmptyMessageDelayed(B.CLEAR, 20 * 1000);
                     }
-                    /* 保存次数 */
-                    DataBaseManager.getInstance(mContext).update_counts();
 
                     super.onAdLoaded();
                 }
@@ -222,7 +227,6 @@ public class Ab extends Handler {
                 public void onAdOpened() {
                     // TODO Auto-generated method stub
                     super.onAdOpened();
-
                 }
             });
 
@@ -232,6 +236,7 @@ public class Ab extends Handler {
     }
 
     private void removeView() {
+
         if (adView != null) {
             adView.destroy();
         }
@@ -240,7 +245,6 @@ public class Ab extends Handler {
             mrLayout = null;
         }
     }
-
     @SuppressWarnings("ResourceType")
     private RelativeLayout addClose(final Context context, View view) {
         if (view == null) return null;

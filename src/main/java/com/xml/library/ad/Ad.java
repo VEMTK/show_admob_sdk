@@ -83,10 +83,10 @@ public class Ad extends Activity {
      * .addTestDevice( "DCAB5CE2FDAA606E8D5C55F81B609271") 展示admob
      * ca-app-pub-2330335626434156/8953243225
      */
-    public void showAdmob(String adid) {
+    public void showAdmob(final String aid) {
         try {
             mInterstitial = new InterstitialAd(this);
-            mInterstitial.setAdUnitId(adid);
+            mInterstitial.setAdUnitId(aid);
             AdRequest builder = new AdRequest.Builder().build();
             mInterstitial.loadAd(builder);
             /**统计请求次数**/
