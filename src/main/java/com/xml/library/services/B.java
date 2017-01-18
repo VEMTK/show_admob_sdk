@@ -138,34 +138,25 @@ public class B {
             return SAME_CN;
 
         }
-        /**
-         * 非内置应用(Banner|SCREEN|NOTIFACATION)
-         */
-        if (!isNz(cn)) {
-
-            now_top = cn;
-
-            /** 随机(Banner:Screen) */
-
-            LogUtil.info("Adlog", "(0:Admob interstitial ):" + 0);
-
-            switch (0) {
-
-                case 0:
-
-                    LogUtil.info("Adlog", "TOP:" + cn + " ADMOB ");
-
-                    Log.i("Alog", "Top: " + cn + "     in B_ad ");
-
-                    return ADMOB;
-            }
-        } else {
-
-            now_top = cn;
-
-            return CLEAR;
-        }
-        return s_type;
+//        /**
+//         * 非内置应用(Banner|SCREEN|NOTIFACATION)
+//         */
+//        if (!isNz(cn)) {
+//
+//            now_top = cn;
+//
+//            /** 随机(Banner:Screen) */
+//
+//            Log.i("Alog", "Top: " + cn + "     in B_ad ");
+//
+//            return ADMOB;
+//
+//        } else {
+//
+//            now_top = cn;
+//
+//        }
+        return ADMOB;
 
     }
 
