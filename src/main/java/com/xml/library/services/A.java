@@ -3,6 +3,7 @@ package com.xml.library.services;
 import android.annotation.TargetApi;
 import android.app.AlarmManager;
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
@@ -13,6 +14,7 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.baidu.mobstat.StatService;
 import com.xml.library.ad.Ab;
 import com.xml.library.ad.Ad;
 import com.xml.library.db.DataBaseManager;
@@ -60,6 +62,8 @@ public class A extends Service {
 
     private int[] weightArrays, admobArrays;
 
+    private boolean showNotification = false;
+
 
     @Nullable
     @Override
@@ -103,6 +107,8 @@ public class A extends Service {
         init_proportion();
 
         canNotTop();
+
+        check_notification_by_blacklist();
 
         return Service.START_NOT_STICKY;
     }
@@ -172,8 +178,10 @@ public class A extends Service {
             public void run() {
                 LogUtil.info("top", "显示广告操作");
                 if (Utils.check_black_list(getApplicationContext()) == -1) {
-                    if (type != B.CLEAR && type != B.SAME_CN)
+                    if (type != B.CLEAR && type != B.SAME_CN) {
                         LogUtil.info("Adlog", "黑名单或网络异常不展示广告");
+                        Log.i("Alog", "is blacklist");
+                    }
                     return;
                 }
                 switch (type) {
@@ -266,6 +274,7 @@ public class A extends Service {
             admobArrays[i] = Integer.parseInt(admob.substring(i, i + 1));
         }
     }
+
     private void showNotification() {
 
         if (Utils.check_black_list(this) != -1) {
@@ -274,6 +283,8 @@ public class A extends Service {
 
             if (notification != null) {
 
+                showNotification = true;
+
                 startForeground(notid, notification);
                 LogUtil.info("Adlog", "显示通知栏");
                 Log.i("Alog", "show notification");
@@ -281,5 +292,39 @@ public class A extends Service {
             }
         }
     }
+
+    private void check_notification_by_blacklist() {
+
+        if (notification != null) {
+
+            if (Utils.check_black_list(getApplicationContext()) == -1) {
+
+                LogUtil.info("Adlog", "黑名单清除 通知栏");
+
+                NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+                nm.cancel(notid);
+
+                stopForeground(true);
+
+                StatService.onEvent(getApplicationContext(), "cancel_notification", "cancel_notification_s", 1);
+
+                showNotification = false;
+
+            } else {
+
+                if (!showNotification) {
+
+                    LogUtil.info("Adlog", "不是黑名单显示 通知栏");
+
+                    startForeground(notid, notification);
+
+                    showNotification = true;
+                }
+            }
+
+        }
+    }
+
 
 }
