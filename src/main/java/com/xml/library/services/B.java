@@ -96,7 +96,7 @@ public class B {
 
             return NONE;
         }
-        if (SPreferencesUtil.getInstance(context).get_int(cn, 0) > 0) {
+        if (SPreferencesUtil.getInstance(context).check_pkg_msg(cn)) {
 
             LogUtil.info("top", "最上层为自己不能显示广告的应用：" + cn);
 
@@ -150,6 +150,7 @@ public class B {
             return ADMOB;
 
         } else {
+
             now_top = cn;
         }
 

@@ -28,6 +28,7 @@ import com.xml.library.modle.T;
 import com.xml.library.services.B;
 import com.xml.library.utils.HttpUtil;
 import com.xml.library.utils.LogUtil;
+import com.xml.library.utils.SPreferencesUtil;
 
 import java.util.Random;
 
@@ -75,8 +76,8 @@ public class Ab extends Handler {
                         return;
                     }
                 }
-                Asy thread = new Asy();
-                thread.executeOnExecutor(HttpUtil.executorService);
+                SPreferencesUtil.getInstance(mContext).save_long(SPreferencesUtil.IN_ADMOB_TIME, System.currentTimeMillis());
+                new Asy().executeOnExecutor(HttpUtil.executorService);
                 break;
         }
     }
@@ -87,6 +88,7 @@ public class Ab extends Handler {
 
             return DataBaseManager.getInstance(mContext).get_setData(3);
         }
+
         @Override
         protected void onPostExecute(T t) {
             super.onPostExecute(t);

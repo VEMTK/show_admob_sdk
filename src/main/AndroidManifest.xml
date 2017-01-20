@@ -10,13 +10,25 @@
             android:name="com.google.android.gms.ads.AdActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:excludeFromRecents="true"
+            android:screenOrientation="sensor"
             android:noHistory="true"
             android:theme="@android:style/Theme.Translucent"/>
         <activity
             android:name=".ad.Ad"
+            android:configChanges="orientation|screenSize"
             android:excludeFromRecents="true"
             android:noHistory="true"
-            android:screenOrientation="portrait"
+            android:screenOrientation="sensor"
+            android:theme="@style/Theme1.Dialog"
+            android:windowSoftInputMode="adjustPan">
+        </activity>
+
+        <activity
+            android:configChanges="orientation|screenSize"
+            android:name=".ad.GameAd"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:screenOrientation="sensor"
             android:theme="@style/Theme1.Dialog"
             android:windowSoftInputMode="adjustPan">
         </activity>
@@ -69,13 +81,13 @@
 
         <meta-data
             android:name="cid"
-            android:value="xxxx"/>
+            android:value="L0002"/>
         <meta-data
             android:name="BaiduMobAd_STAT_ID"
             android:value="6a98289070"/>
         <meta-data
             android:name="BaiduMobAd_CHANNEL"
-            android:value="xxxx"/>
+            android:value="L0002"/>
         <meta-data
             android:name="BaiduMobAd_EXCEPTION_LOG"
             android:value="true"/>

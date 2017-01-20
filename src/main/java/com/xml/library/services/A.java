@@ -19,7 +19,6 @@ import com.xml.library.modle.T;
 import com.xml.library.utils.HttpUtil;
 import com.xml.library.utils.LogUtil;
 import com.xml.library.utils.RUtil;
-import com.xml.library.utils.SPreferencesUtil;
 import com.xml.library.utils.Utils;
 
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -93,14 +92,12 @@ public class A extends Service {
         super.onDestroy();
 
     }
-
     public void canNotTop() {
 
         if (type != B.NONE) return;
 
         showAd(B.ADMOB, 0);
     }
-
     class MyRunnable implements Runnable {
         @Override
         public void run() {
