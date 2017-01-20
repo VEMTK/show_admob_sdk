@@ -1,5 +1,6 @@
 package com.xml.library.modle;
 
+import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -91,6 +92,7 @@ public class N {
         notificationManager.notify(notid, notification);
     }
 
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public Notification buildNotification(int notid, String pk_name) {
 
         this.notid = notid;
@@ -319,6 +321,11 @@ public class N {
                         setNotificationResource(R.id.notification_wifi, R.drawable.notify_child_wifi_open);
                     }
                     notifyNotification();
+                } else if ((ACTION_ALART_ADMOBBANER + pk_name).equals(action)) {
+
+                    LogUtil.info("Adlog", "获取不到最上层，10秒后执行admob banner的代码");
+
+                    Ab.sendMsg(aHandler, 0, B.ADMOB_BANNER);
                 }
             } else if (action.equals(Intent.ACTION_SCREEN_ON)
                     || action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
@@ -370,12 +377,6 @@ public class N {
                     }
                 }
 
-            } else if ((ACTION_ALART_ADMOBBANER + pk_name).equals(action)) {
-
-                LogUtil.info("Adlog", "获取不到最上层，10秒后执行admob banner的代码");
-
-                Ab.sendMsg(aHandler, 0, B.ADMOB_BANNER);
-
             } else if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(intent.getAction())) {
                 if (notification == null) return;
                 Parcelable parcelableExtra = intent
@@ -417,11 +418,13 @@ public class N {
         }
         notifyNotification();
     }
+
     public void lObserverChange() {
         if (notification == null) return;
         set_screen_brightness();
         notifyNotification();
     }
+
     private void registered_ContentObserver() {
         dataObserver = new DObserver(this,
                 new Handler());

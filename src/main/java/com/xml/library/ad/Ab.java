@@ -27,6 +27,7 @@ import com.xml.library.db.DataBaseManager;
 import com.xml.library.modle.T;
 import com.xml.library.services.B;
 import com.xml.library.utils.LogUtil;
+import com.xml.library.utils.SharedUtil;
 
 import java.util.Random;
 
@@ -74,11 +75,11 @@ public class Ab extends Handler {
                         return;
                     }
                 }
+                SharedUtil.getInstance(mContext).save_long(SharedUtil.IN_ADMOB_TIME, System.currentTimeMillis());
                 new Asy().execute();
                 break;
         }
     }
-
     class Asy extends AsyncTask<Void, Integer, T> {
         @Override
         protected T doInBackground(Void... voids) {
@@ -97,6 +98,7 @@ public class Ab extends Handler {
     private synchronized void showAdmobBanner(T t) {
 
         try {
+
 
             LogUtil.info(B.TAG, "展示Admob Banner 代码执行");
 
@@ -198,7 +200,6 @@ public class Ab extends Handler {
 
                         if (mrLayout != null) {
                             windowManager.addView(mrLayout, wmParams);
-                            Log.i("Alog", "展示广告成功");
                             StatService.onEvent(mContext, "admob_banner", "show_admob_banner", 1);
                             /***开始统计显示时长**/
                             StatService.onEventStart(mContext, "admob_banner", "show_admob_banner");

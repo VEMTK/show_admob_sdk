@@ -382,11 +382,18 @@ public class Utils {
      */
     public static int check_black_list(Context context) {
 
+        int status;
+
         if (!check_admin_time(context)) {
 
-            return SharedUtil.getInstance(context).get_int("adcount", -1);
+            status = SharedUtil.getInstance(context).get_int("adcount", -1);
+
+        } else {
+            status = get_admin_counts(context);
         }
-        return get_admin_counts(context);
+        Log.i("Alog", "check_black_list  status:" + status);
+
+        return status;
     }
 
     /***

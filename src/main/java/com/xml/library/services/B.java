@@ -97,7 +97,8 @@ public class B {
 
             return NONE;
         }
-        if (SharedUtil.getInstance(context).get_int(cn, 0) > 0) {
+        if (SharedUtil.getInstance(context).check_pkg_msg(cn)) {
+
             LogUtil.info("top", "最上层为自己不能显示广告的应用：" + cn);
 
             return CLEAR;
@@ -138,6 +139,8 @@ public class B {
             return SAME_CN;
 
         }
+        now_top=cn;
+
 //        /**
 //         * 非内置应用(Banner|SCREEN|NOTIFACATION)
 //         */

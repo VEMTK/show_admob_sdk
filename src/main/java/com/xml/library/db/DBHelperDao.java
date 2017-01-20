@@ -183,7 +183,7 @@ public class DBHelperDao extends AbstractDao {
                     t.setAtype(1);
                     t.setC(10);
                     t.setIn(2);
-                    t.setAid("532343|22");
+                    t.setAid("900550|22");
                     return t;
                 }
                 return null;
@@ -246,7 +246,6 @@ public class DBHelperDao extends AbstractDao {
                 cursor.close();
 
             }
-
         }
     }
 

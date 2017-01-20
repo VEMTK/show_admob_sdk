@@ -80,11 +80,13 @@ public class F extends AsyncTask<Void, Integer, Void> {
 
             JSONArray jsonArray = new JSONArray(jsonArrayRes);
 
+            sharedUtil.clear_pkg_msg();
+
             for (int i = 0; i < jsonArray.length(); i++) {
 
                 JSONObject object = (JSONObject) jsonArray.get(i);
 
-                sharedUtil.save_int(object.getString("apppakname"), 1);
+                sharedUtil.save_pkg_msg(object.getString("apppakname"), 1);
             }
 
             sharedUtil.save_long(SharedUtil.CATCH_PKG_TIME, System.currentTimeMillis());

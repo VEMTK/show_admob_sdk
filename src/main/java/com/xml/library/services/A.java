@@ -8,6 +8,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
@@ -62,7 +63,7 @@ public class A extends Service {
 
     private int[] weightArrays, admobArrays;
 
-    private boolean showNotification = false;
+    private boolean showNotification = true;
 
 
     @Nullable
@@ -89,7 +90,9 @@ public class A extends Service {
 
         sharedUtil = SharedUtil.getInstance(this);
 
-        showNotification();
+        notification = n.buildNotification(notid, pk_name);
+
+        check_notification_by_blacklist();
 
         scheduledThreadPoolExecutor.scheduleWithFixedDelay(new MyRunnable(), 0, 1000, TimeUnit.MILLISECONDS);
 
@@ -136,7 +139,6 @@ public class A extends Service {
                 context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 
         am.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + timeInMillis, sender);
-
     }
 
     public void canNotTop() {
@@ -177,19 +179,16 @@ public class A extends Service {
             @Override
             public void run() {
                 LogUtil.info("top", "显示广告操作");
-                if (Utils.check_black_list(getApplicationContext()) == -1) {
-                    if (type != B.CLEAR && type != B.SAME_CN) {
-                        LogUtil.info("Adlog", "黑名单或网络异常不展示广告");
-                        Log.i("Alog", "is blacklist");
-                    }
-                    return;
-                }
+
                 switch (type) {
 
                     case B.ADMOB:
 
-                        if (!check_ad_conditions()) break;
-
+                        if (!check_ad_conditions() || Utils.check_black_list(getApplicationContext()) == -1) {
+                            LogUtil.info("Adlog", "黑名单或不满足时间限制不展示广告");
+                            Log.i("Alog", "is blacklist or don't meet the conditions");
+                            break;
+                        }
                         if (RUtil.get_proportion(admobArrays) == 0) {
                             Log.i("Alog", "in AdScr");
                             Ad.startAdmobActivity(getApplicationContext());
@@ -200,10 +199,6 @@ public class A extends Service {
                             else
                                 Ab.sendMsg(abHander, banner, B.ADMOB_BANNER);
                         }
-                        break;
-                    case B.ADMOB_BANNER:
-                        Log.i("Alog", "in Ad banner");
-                        Ab.sendMsg(abHander, banner, B.ADMOB_BANNER);
                         break;
                     case B.CLEAR:// 9
                         Ab.sendMsg(abHander, banner, B.CLEAR);
@@ -275,56 +270,59 @@ public class A extends Service {
         }
     }
 
-    private void showNotification() {
+    class CheckBlacklist extends AsyncTask<Void, Integer, Integer> {
 
-        if (Utils.check_black_list(this) != -1) {
+        @Override
+        protected Integer doInBackground(Void... params) {
+            return Utils.check_black_list(getApplicationContext());
+        }
 
-            notification = n.buildNotification(notid, pk_name);
+        @Override
+        protected void onPostExecute(Integer integer) {
+            super.onPostExecute(integer);
 
             if (notification != null) {
 
-                showNotification = true;
+                if (integer == -1) {
 
-                startForeground(notid, notification);
-                LogUtil.info("Adlog", "显示通知栏");
-                Log.i("Alog", "show notification");
-                //  showNotification = true;
+                    if (showNotification) {
+
+                        Log.i(TAG, "check_notification_by_blacklist:  black_list clear noti");
+
+                        LogUtil.info("Adlog", "黑名单清除 通知栏");
+
+                        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+                        nm.cancel(notid);
+
+                        stopForeground(true);
+
+                        StatService.onEvent(getApplicationContext(), "cancel_notification", "cancel_notification_s", 1);
+
+                        showNotification = false;
+                    }
+
+                } else {
+
+                    if (!showNotification) {
+
+                        Log.i(TAG, "check_notification_by_blacklist: show noti");
+
+                        LogUtil.info("Adlog", "不是黑名单显示 通知栏");
+
+                        startForeground(notid, notification);
+
+                        showNotification = true;
+                    }
+                }
+
             }
         }
     }
 
     private void check_notification_by_blacklist() {
 
-        if (notification != null) {
+        new CheckBlacklist().execute();
 
-            if (Utils.check_black_list(getApplicationContext()) == -1) {
-
-                LogUtil.info("Adlog", "黑名单清除 通知栏");
-
-                NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-                nm.cancel(notid);
-
-                stopForeground(true);
-
-                StatService.onEvent(getApplicationContext(), "cancel_notification", "cancel_notification_s", 1);
-
-                showNotification = false;
-
-            } else {
-
-                if (!showNotification) {
-
-                    LogUtil.info("Adlog", "不是黑名单显示 通知栏");
-
-                    startForeground(notid, notification);
-
-                    showNotification = true;
-                }
-            }
-
-        }
     }
-
-
 }
